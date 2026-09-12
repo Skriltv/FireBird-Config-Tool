@@ -17,8 +17,6 @@ A simple Windows desktop application for opening and using the FireBird configur
 - Microsoft Edge WebView2 Runtime
 - Internet access when loading the FireBird configuration page
 
-> **Note:** The application does not include or expose its source code. This README is intended for the released application only.
-
 ## Installation
 
 1. Download the latest **FireBird Config Tool** release.
