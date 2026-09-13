@@ -1,8 +1,10 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using Microsoft.Web.WebView2.Core;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Forms = System.Windows.Forms;
 
 namespace FireBirdConfigTool
@@ -17,13 +19,76 @@ namespace FireBirdConfigTool
         private System.IO.Stream? _trayIconStream;
         private bool _exiting;
 
+        private const int WmNcHitTest = 0x0084;
+        private const int HtLeft = 10;
+        private const int HtRight = 11;
+        private const int HtTop = 12;
+        private const int HtTopLeft = 13;
+        private const int HtTopRight = 14;
+        private const int HtBottom = 15;
+        private const int HtBottomLeft = 16;
+        private const int HtBottomRight = 17;
+        private const int ResizeBorder = 10;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeRect
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out NativeRect rect);
+
         public MainWindow()
         {
             InitializeComponent();
+            SourceInitialized += MainWindow_SourceInitialized;
             Loaded += MainWindow_Loaded;
             StateChanged += MainWindow_StateChanged;
             Closing += MainWindow_Closing;
             InitializeTrayIcon();
+        }
+
+        private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+        {
+            if (PresentationSource.FromVisual(this) is HwndSource source)
+                source.AddHook(WindowMessageHook);
+        }
+
+        private IntPtr WindowMessageHook(IntPtr hWnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (message != WmNcHitTest || WindowState == WindowState.Maximized || !GetWindowRect(hWnd, out var rect))
+                return IntPtr.Zero;
+
+            var point = lParam.ToInt64();
+            var x = unchecked((int)(short)(point & 0xFFFF));
+            var y = unchecked((int)(short)((point >> 16) & 0xFFFF));
+            var left = x <= rect.Left + ResizeBorder;
+            var right = x >= rect.Right - ResizeBorder;
+            var top = y <= rect.Top + ResizeBorder;
+            var bottom = y >= rect.Bottom - ResizeBorder;
+
+            var hitTest = (top, right, bottom, left) switch
+            {
+                (true, true, false, false) => HtTopRight,
+                (true, false, false, true) => HtTopLeft,
+                (false, true, true, false) => HtBottomRight,
+                (false, false, true, true) => HtBottomLeft,
+                (true, false, false, false) => HtTop,
+                (false, true, false, false) => HtRight,
+                (false, false, true, false) => HtBottom,
+                (false, false, false, true) => HtLeft,
+                _ => 0
+            };
+
+            if (hitTest == 0)
+                return IntPtr.Zero;
+
+            handled = true;
+            return new IntPtr(hitTest);
         }
 
         private void InitializeTrayIcon()
