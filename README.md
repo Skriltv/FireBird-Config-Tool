@@ -91,9 +91,3 @@ When reporting a problem, include:
 - Any error message shown by the application
 - Whether WebView2 is installed
 - Whether the device is detected by other compatible software
-
-<<<<<<< HEAD
-This information makes troubleshooting much easier.
-=======
-This information makes troubleshooting much easier.
->>>>>>> 39b3ea18aa0efdeb52e1aeec05ffd8ec3fec13e6
