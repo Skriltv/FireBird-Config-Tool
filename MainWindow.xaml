@@ -9,7 +9,7 @@
         MinHeight="500" MinWidth="700"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
-        ResizeMode="CanResize"
+        ResizeMode="CanResizeWithGrip"
         Background="#1B1D21">
     <Window.Resources>
         <Style x:Key="TitleBarButtonStyle" TargetType="Button">
@@ -48,7 +48,7 @@
 
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="42"
-                            ResizeBorderThickness="6"
+                            ResizeBorderThickness="8"
                             CornerRadius="0"
                             GlassFrameThickness="0"
                             UseAeroCaptionButtons="False" />
